@@ -1,0 +1,113 @@
+#include <SPI.h>
+#include <Ethernet.h>
+#include <LiquidCrystal.h>
+
+uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
+
+
+const int port = 23;
+const int pin = 3;
+
+
+EthernetServer server(port);
+
+String cmd;
+
+LiquidCrystal lcd(7, 6, 2, 3, 4, 5); // LiquidCrystal(rs, enable, d4, d5, d6, d7) 
+
+
+void setup()
+{
+  DDRC |= 0x3F;
+  PORTC &= ~0x3F;
+  DDRB |= B00000011;
+  PORTB &= ~B00000011;
+  
+
+  lcd.begin(16, 2);
+  delay(10);
+  lcd.clear();
+
+  
+  Ethernet.begin(mac);
+  delay(100);
+  server.begin();
+  delay(100);
+
+
+  lcd.setCursor(0, 0); 
+  lcd.print("ServerIP Adress:"); 
+  lcd.setCursor(0, 1);
+  lcd.print(Ethernet.localIP());
+
+}
+
+void loop()
+{
+
+
+  EthernetClient client = server.available();
+
+  if (client.available())
+  {
+
+    char c = client.read();
+
+    if (c != '\n')
+    {
+      cmd += c;
+    }
+    else
+    {
+      
+      processCommand(cmd);
+      cmd = "";
+    }
+  }
+
+}
+
+void processCommand(String cmd)
+{
+  if (cmd == "Q")
+  {
+    PORTB ^= 0x02; 
+    delay(100);
+  }
+  else if (cmd == "W")
+  {
+    PORTB ^= 0x01;  
+    delay(100);
+  }
+  else if (cmd == "E")
+  {
+    PORTC ^= 0x20; 
+    delay(100);
+  }
+  else if (cmd == "R")
+  {
+    PORTC ^= 0x10; 
+    delay(100);
+  }
+  else if (cmd == "T")
+  {
+    PORTC ^= 0x08; 
+    delay(100);
+  }
+  else if (cmd == "Y")
+  {
+    PORTC ^= 0x04;
+    delay(100);
+  }
+  else if (cmd == "U")
+  {
+    PORTC ^= 0x02; 
+    delay(100);
+  }
+  else if (cmd == "I")
+  {
+    PORTC ^= 0x01; 
+    delay(100);
+  }
+
+}
